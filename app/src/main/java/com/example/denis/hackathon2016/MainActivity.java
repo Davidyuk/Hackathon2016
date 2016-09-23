@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.content.Intent;
 import android.widget.TextView;
+import android.opengl.Matrix;
 
 import java.util.Arrays;
 
@@ -61,11 +62,23 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (mGravityValue != null && mGeomagneticValue != null) {
             float[] rotationMatrix = new float[16];
             float[] inclinationMatrix = new float[16];
-            SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix, mGravityValue, mGeomagneticValue);
+	        float[] invRotationMatrix = new float[16];
+	        float[] finCoordinates = new float[4];
+	        float[] curCoordinates = new float[4];
+	        curCoordinates[0] = 1;
+	        curCoordinates[1] = 1/2;
+	        curCoordinates[2] = 0;
+	        curCoordinates[3] = 0;
+
+	        SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix, mGravityValue, mGeomagneticValue);
             t.append("\nrotationMatrix:\n");
             t.append(Arrays.toString(rotationMatrix));
             t.append("\ninclinationMatrix:\n");
             t.append(Arrays.toString(inclinationMatrix));
+	        Matrix.invertM(invRotationMatrix, 0, rotationMatrix, 0);
+	        Matrix.multiplyMV(finCoordinates, 0, invRotationMatrix, 0, curCoordinates, 0);
+
+
         }
     }
 

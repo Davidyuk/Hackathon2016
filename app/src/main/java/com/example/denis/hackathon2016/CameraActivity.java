@@ -53,6 +53,7 @@ public class CameraActivity extends AppCompatActivity {
         super.onResume();
         camera = Camera.open(CAMERA_ID);
         setPreviewSize(FULL_SCREEN);
+
     }
 
     @Override
