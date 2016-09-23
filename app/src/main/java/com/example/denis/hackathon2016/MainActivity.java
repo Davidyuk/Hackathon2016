@@ -1,6 +1,11 @@
 package com.example.denis.hackathon2016;
 
 import android.content.Context;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -16,7 +21,9 @@ import android.view.MenuItem;
 import android.content.Intent;
 import android.widget.TextView;
 
+import java.nio.DoubleBuffer;
 import java.util.Arrays;
+
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private SensorManager mSensorManager;
@@ -31,6 +38,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        MyLocationListener.SetUpLocationListener(this);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -55,6 +63,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         t.append("\n\n");
         t.append(Arrays.toString(mGeomagneticValue));
         t.append("\n\n");
+        if (MyLocationListener.imHere != null) {
+            t.append("\n\n");
+            t.append(Double.toString(MyLocationListener.imHere.getLatitude()));
+            t.append("\n\n");
+            t.append(Double.toString(MyLocationListener.imHere.getLongitude()));
+        } else {
+            t.append("\n");
+            t.append("tttttttleeeeen");
+            t.append("\n");
+        }
+
+
 
         if (mGravityValue != null && mGeomagneticValue != null) {
             float[] rotationMatrix = new float[16];
