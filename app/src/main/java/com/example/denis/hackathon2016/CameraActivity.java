@@ -43,8 +43,8 @@ public class CameraActivity extends AppCompatActivity {
 
         CameraSurfaceView sv = (CameraSurfaceView)findViewById(R.id.surfaceView);
         CameraSurfaceView.Circle2D[] a = new CameraSurfaceView.Circle2D[2];
-        a[0] = new CameraSurfaceView.Circle2D(20, 20, 20);
-        a[1] = new CameraSurfaceView.Circle2D(20, 80, 20);
+        a[0] = new CameraSurfaceView.Circle2D(0, 0, 1);
+        a[1] = new CameraSurfaceView.Circle2D((float)0.5, (float)0.5, (float)1.5);
         sv.setCricles(a);
     }
 
