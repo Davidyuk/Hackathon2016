@@ -62,6 +62,7 @@ public class CameraActivity extends AppCompatActivity {
         @Override
         public void surfaceCreated(SurfaceHolder holder) {
             try {
+                sv.setWillNotDraw(false);
                 camera.setPreviewDisplay(holder);
                 camera.startPreview();
             } catch (IOException e) {
