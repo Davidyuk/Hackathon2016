@@ -1,5 +1,10 @@
 package com.example.denis.hackathon2016;
 
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -8,8 +13,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.content.Intent;
+import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity {
+import java.util.Arrays;
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener {
+    private SensorManager mSensorManager;
+    private Sensor mGravity, mGeomagnetic;
+    private float[] mGravityValue, mGeomagneticValue;
 
     public void gotoFullscreen(View view) {
         /*Snackbar.make(view, "GTFO", Snackbar.LENGTH_LONG)
@@ -33,6 +45,55 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        mGeomagnetic = mSensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
+    }
+
+    private void renderMatrix() {
+        TextView t = (TextView)findViewById(R.id.textView);
+        t.setText(Arrays.toString(mGravityValue));
+        t.append("\n\n");
+        t.append(Arrays.toString(mGeomagneticValue));
+        t.append("\n\n");
+
+        if (mGravityValue != null && mGeomagneticValue != null) {
+            float[] rotationMatrix = new float[16];
+            float[] inclinationMatrix = new float[16];
+            SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix, mGravityValue, mGeomagneticValue);
+            t.append("\nrotationMatrix:\n");
+            t.append(Arrays.toString(rotationMatrix));
+            t.append("\ninclinationMatrix:\n");
+            t.append(Arrays.toString(inclinationMatrix));
+        }
+    }
+
+    @Override
+    public final void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // Do something here if sensor accuracy changes.
+    }
+
+    @Override
+    public final void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR)
+            mGeomagneticValue = event.values;
+        if (event.sensor.getType() == Sensor.TYPE_GRAVITY)
+            mGravityValue = event.values;
+        renderMatrix();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mGeomagnetic, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mSensorManager.unregisterListener(this);
     }
 
     @Override
