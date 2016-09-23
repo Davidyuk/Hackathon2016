@@ -18,9 +18,23 @@ public class CameraSurfaceView extends SurfaceView {
         rectanglePaint.setStrokeWidth(2);
     }
 
+    static class Circle2D {
+        Circle2D(int _x, int _y, int _r) {
+            x = _x; y = _y; r = _r;
+        }
+        int x, y, r;
+    }
+
+    private Circle2D[] mCircles = new Circle2D[0];
+
+    public void setCricles(Circle2D[] circles) {
+        mCircles = circles;
+    }
+
     @Override
     protected void onDraw(Canvas canvas){
-        canvas.drawRect(10, 10, 200, 200, rectanglePaint);
+        for (Circle2D c : mCircles)
+            canvas.drawCircle(c.x, c.y, c.r, rectanglePaint);
         Log.w(this.getClass().getName(), "On Draw Called");
     }
 }
