@@ -11,6 +11,11 @@ import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
 
+    public void gotoFullscreen(View view) {
+        Intent intent = new Intent(this, FullscreenActivity.class);
+        startActivity(intent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

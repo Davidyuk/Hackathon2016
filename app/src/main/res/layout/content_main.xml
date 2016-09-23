@@ -17,4 +17,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hello World!" />
+
+    <Button
+        android:text="Goto Full screen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="176dp"
+        android:id="@+id/button"
+        android:onClick="gotoFullscreen" />
 </RelativeLayout>
