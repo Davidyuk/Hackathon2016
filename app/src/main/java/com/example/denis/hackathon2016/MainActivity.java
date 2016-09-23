@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] mGravityValue, mGeomagneticValue;
 
     public void gotoFullscreen(View view) {
-        Intent intent = new Intent(this, FullscreenActivity.class);
+        Intent intent = new Intent(this, CameraActivity.class);
         startActivity(intent);
     }
 
