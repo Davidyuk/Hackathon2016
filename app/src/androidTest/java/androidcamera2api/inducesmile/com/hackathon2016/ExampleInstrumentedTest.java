@@ -1,4 +1,4 @@
-package com.example.denis.hackathon2016;
+package androidcamera2api.inducesmile.com.hackathon2016;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.example.denis.hackathon2016", appContext.getPackageName());
+        assertEquals("androidcamera2api.inducesmile.com.hackathon2016", appContext.getPackageName());
     }
 }

@@ -1,4 +1,4 @@
-package com.example.denis.hackathon2016;
+package androidcamera2api.inducesmile.com.hackathon2016;
 
 import org.junit.Test;
 
