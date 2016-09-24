@@ -26,8 +26,8 @@ import android.widget.TextView;
 
 public class CameraActivity extends AppCompatActivity implements SensorEventListener {
     private SensorManager mSensorManager;
-    private Sensor mGravity, mGeomagnetic;
-    private float[] mGravityValue, mGeomagneticValue;
+    private Sensor mGravity, mGeomagnetic, mRotationVector;
+    private float[] mGravityValue, mGeomagneticValue, mRotationVectorValue;
 
     SurfaceView sv;
     SurfaceHolder holder;
@@ -61,45 +61,56 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         mGeomagnetic = mSensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
+        mRotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
     }
 
     private void renderMatrix() {
-        if (mGravityValue != null && mGeomagneticValue != null) {
+        if (mRotationVectorValue != null) {
             float[] rotationMatrix = new float[16];
             float[] inclinationMatrix = new float[16];
-            float[] invRotationMatrix = new float[16];
+            float[] transRotationMatrix = new float[16];
             float[] perspectiveMatrix = new float[16];
             float[] mVPmatrix = new float[16];
+            float[] viewMatrix = new float[16];
+            float[] translateMatrix = new float[16];
 
             float t = (float)0.5;
             float[] points = new float[]{t, t, 0, 0, t, -t, 0, 0, -t, t, 0, 0, -t, -t, 0, 0};
 
             CameraSurfaceView sv = (CameraSurfaceView)findViewById(R.id.surfaceView);
-
-            SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix, mGravityValue, mGeomagneticValue);
-            android.opengl.Matrix.transposeM(invRotationMatrix, 0, rotationMatrix, 0);
-            android.opengl.Matrix.perspectiveM(perspectiveMatrix, 0, 90, sv.getAspectRatio(), (float)0.1, 1)    ;
-            android.opengl.Matrix.multiplyMM(mVPmatrix, 0, perspectiveMatrix, 0, rotationMatrix, 0);
+            //android.opengl.Matrix.setRotateEulerM(inclinationMatrix, 0, 90, 90, 90);
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, mRotationVectorValue);
+            //android.opengl.Matrix.translateM(translateMatrix, 0, 0, 0, -10);
+            //android.opengl.Matrix.invertM(invRotationMatrix, 0, rotationMatrix, 0);
+            //android.opengl.Matrix.multiplyMM(viewMatrix, 0, rotationMatrix, 0, translateMatrix, 0);
+            android.opengl.Matrix.perspectiveM(perspectiveMatrix, 0, 90, sv.getAspectRatio(), (float)0.1, 1);
+            /*android.opengl.Matrix.multiplyMM(mVPmatrix, 0, perspectiveMatrix, 0, rotationMatrix, 0);
             // mVPmatrix = perspectiveMatrix;
             // android.opengl.Matrix.multiplyMM(mVPmatrix, 0, rotationMatrix, 0, perspectiveMatrix, 0);
 
             CameraSurfaceView.Circle2D[] a = new CameraSurfaceView.Circle2D[points.length / 4];
             for (int i = 0; i < points.length / 4; i++) {
                 float[] res = new float[4];
-                android.opengl.Matrix.multiplyMV(res, 0, mVPmatrix, 0, points, i * 4);
-                a[i] = new CameraSurfaceView.Circle2D(res[0] + (float)0.5, res[1] + (float)0.5, i);
-            }
+                android.opengl.Matrix.multiplyMV(res, 0, rotationMatrix, 0, points, i * 4);
+                a[i] = new CameraSurfaceView.Circle2D(res[0] + 0.5f, res[1] +0.5f, i);
+                break;
+            }*/
 
-            /*float[] vec = {0, 0, (float)0.5, 0};
+            float[] vec = {1, 0, 0, 0};
             float[] res = new float[4];
+
             CameraSurfaceView.Circle2D[] a = new CameraSurfaceView.Circle2D[2];
+            float[] rotateAround = new float[16];
+            float[] rotated = new float[16];
 
-            android.opengl.Matrix.multiplyMV(res, 0, rotationMatrix, 0, vec, 0);
-            a[0] = new CameraSurfaceView.Circle2D(res[0] + (float)0.5, res[1] + (float)0.5, 2);
-            *//*android.opengl.Matrix.multiplyMV(res, 0, invRotationMatrix, 0, vec, 0);
-            a[1] = new CameraSurfaceView.Circle2D(res[0] + (float)0.5, res[1] + (float)0.5, 3);*//*
+            android.opengl.Matrix.setRotateEulerM(rotateAround, 0, 0, 0, 100);
+            //SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix, mGravityValue, mGeomagneticValue);
+            android.opengl.Matrix.multiplyMM(rotated, 0, rotationMatrix, 0, rotateAround, 0);
+            android.opengl.Matrix.multiplyMM(mVPmatrix, 0, perspectiveMatrix, 0, rotated, 0);
+            android.opengl.Matrix.multiplyMV(res, 0, mVPmatrix, 0, vec, 0);
 
-            a[1] = new CameraSurfaceView.Circle2D((float)0.5, (float)0.5, 1);*/
+            a[0] = new CameraSurfaceView.Circle2D(res[0] + 0.5f, -res[1] + 0.5f, 2);
+            a[1] = new CameraSurfaceView.Circle2D(0.5f, 0.5f, 1);
 
             sv.setCricles(a);
             sv.invalidate();
@@ -117,6 +128,8 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
             mGeomagneticValue = event.values;
         if (event.sensor.getType() == Sensor.TYPE_GRAVITY)
             mGravityValue = event.values;
+        if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR)
+            mRotationVectorValue = event.values;
         renderMatrix();
     }
 
@@ -125,6 +138,7 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
         super.onResume();
         mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_GAME);
         mSensorManager.registerListener(this, mGeomagnetic, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mRotationVector, SensorManager.SENSOR_DELAY_GAME);
         camera = Camera.open(CAMERA_ID);
         setPreviewSize(FULL_SCREEN);
 

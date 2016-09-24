@@ -95,8 +95,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 t.append("\n");
             }
             // t.append(Arrays.toString(rotationMatrix));
-            t.append("\ninclinationMatrix:\n");
-            t.append(Arrays.toString(inclinationMatrix));
+            //t.append("\ninclinationMatrix:\n");
+           /// t.append(Arrays.toString(inclinationMatrix));
 	        Matrix.invertM(invRotationMatrix, 0, rotationMatrix, 0);
 	        Matrix.multiplyMV(finCoordinates, 0, invRotationMatrix, 0, curCoordinates, 0);
 
