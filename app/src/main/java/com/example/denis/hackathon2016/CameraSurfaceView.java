@@ -14,7 +14,7 @@ public class CameraSurfaceView extends SurfaceView {
 
     public CameraSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        rectanglePaint.setARGB(255, 200, 0, 0);
+        rectanglePaint.setARGB(128, 0, 0, 255);
         rectanglePaint.setStyle(Paint.Style.FILL);
         rectanglePaint.setStrokeWidth(2);
     }
@@ -38,9 +38,8 @@ public class CameraSurfaceView extends SurfaceView {
 
     @Override
     protected void onDraw(Canvas canvas){
-        aspectRatio = canvas.getWidth() / canvas.getHeight();
+        aspectRatio = (float) canvas.getWidth() / canvas.getHeight();
         for (Circle2D c : mCircles)
             canvas.drawCircle(c.x * canvas.getWidth(), c.y * canvas.getHeight(), c.r * 30, rectanglePaint);
-        Log.w(this.getClass().getName(), "On Draw Called");
     }
 }

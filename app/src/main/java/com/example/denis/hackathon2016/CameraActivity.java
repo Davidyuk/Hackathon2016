@@ -1,7 +1,13 @@
 package com.example.denis.hackathon2016;
 
 import java.io.IOException;
+import java.util.Arrays;
 
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -9,14 +15,19 @@ import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Size;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.TextView;
 
-public class CameraActivity extends AppCompatActivity {
+public class CameraActivity extends AppCompatActivity implements SensorEventListener {
+    private SensorManager mSensorManager;
+    private Sensor mGravity, mGeomagnetic;
+    private float[] mGravityValue, mGeomagneticValue;
 
     SurfaceView sv;
     SurfaceHolder holder;
@@ -46,11 +57,74 @@ public class CameraActivity extends AppCompatActivity {
         a[0] = new CameraSurfaceView.Circle2D(0, 0, 1);
         a[1] = new CameraSurfaceView.Circle2D((float)0.5, (float)0.5, (float)1.5);
         sv.setCricles(a);
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
+        mGeomagnetic = mSensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
+    }
+
+    private void renderMatrix() {
+        if (mGravityValue != null && mGeomagneticValue != null) {
+            float[] rotationMatrix = new float[16];
+            float[] inclinationMatrix = new float[16];
+            float[] invRotationMatrix = new float[16];
+            float[] perspectiveMatrix = new float[16];
+            float[] mVPmatrix = new float[16];
+
+            float t = (float)0.5;
+            float[] points = new float[]{t, t, 0, 0, t, -t, 0, 0, -t, t, 0, 0, -t, -t, 0, 0};
+
+            CameraSurfaceView sv = (CameraSurfaceView)findViewById(R.id.surfaceView);
+
+            SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix, mGravityValue, mGeomagneticValue);
+            android.opengl.Matrix.transposeM(invRotationMatrix, 0, rotationMatrix, 0);
+            android.opengl.Matrix.perspectiveM(perspectiveMatrix, 0, 90, sv.getAspectRatio(), (float)0.1, 1)    ;
+            android.opengl.Matrix.multiplyMM(mVPmatrix, 0, perspectiveMatrix, 0, rotationMatrix, 0);
+            // mVPmatrix = perspectiveMatrix;
+            // android.opengl.Matrix.multiplyMM(mVPmatrix, 0, rotationMatrix, 0, perspectiveMatrix, 0);
+
+            CameraSurfaceView.Circle2D[] a = new CameraSurfaceView.Circle2D[points.length / 4];
+            for (int i = 0; i < points.length / 4; i++) {
+                float[] res = new float[4];
+                android.opengl.Matrix.multiplyMV(res, 0, mVPmatrix, 0, points, i * 4);
+                a[i] = new CameraSurfaceView.Circle2D(res[0] + (float)0.5, res[1] + (float)0.5, i);
+            }
+
+            /*float[] vec = {0, 0, (float)0.5, 0};
+            float[] res = new float[4];
+            CameraSurfaceView.Circle2D[] a = new CameraSurfaceView.Circle2D[2];
+
+            android.opengl.Matrix.multiplyMV(res, 0, rotationMatrix, 0, vec, 0);
+            a[0] = new CameraSurfaceView.Circle2D(res[0] + (float)0.5, res[1] + (float)0.5, 2);
+            *//*android.opengl.Matrix.multiplyMV(res, 0, invRotationMatrix, 0, vec, 0);
+            a[1] = new CameraSurfaceView.Circle2D(res[0] + (float)0.5, res[1] + (float)0.5, 3);*//*
+
+            a[1] = new CameraSurfaceView.Circle2D((float)0.5, (float)0.5, 1);*/
+
+            sv.setCricles(a);
+            sv.invalidate();
+        }
+    }
+
+    @Override
+    public final void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // Do something here if sensor accuracy changes.
+    }
+
+    @Override
+    public final void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR)
+            mGeomagneticValue = event.values;
+        if (event.sensor.getType() == Sensor.TYPE_GRAVITY)
+            mGravityValue = event.values;
+        renderMatrix();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        mSensorManager.registerListener(this, mGravity, SensorManager.SENSOR_DELAY_GAME);
+        mSensorManager.registerListener(this, mGeomagnetic, SensorManager.SENSOR_DELAY_GAME);
         camera = Camera.open(CAMERA_ID);
         setPreviewSize(FULL_SCREEN);
 
@@ -59,6 +133,7 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        mSensorManager.unregisterListener(this);
         if (camera != null)
             camera.release();
         camera = null;

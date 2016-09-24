@@ -73,15 +73,37 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 	        curCoordinates[2] = 0;
 	        curCoordinates[3] = 0;
 
+            float[] rotateX = new float[16], resM = new float[16];
+            Matrix.setRotateEulerM(rotateX, 0, 90, 0, 0);
+            //Matrix.rotateM(rotationMatrix, 0, 90, 1, 0, 0);
 	        SensorManager.getRotationMatrix(rotationMatrix, inclinationMatrix, mGravityValue, mGeomagneticValue);
+
+            t.append("\norientation:\n");
+            float[] res = new float[3];
+            mSensorManager.getOrientation(rotationMatrix, res);
+            t.append(String.format("z: %3.0f, x: %3.0f, y: %3.0f", Math.toDegrees(res[0]), Math.toDegrees(res[1]), Math.toDegrees(res[2])));
+
+            //Matrix.rotateM(rotationMatrix, 0, 90, 1, 0, 0);
+            Matrix.multiplyMM(resM, 0, rotationMatrix, 0, rotateX, 0);
+            rotationMatrix = resM;
+
             t.append("\nrotationMatrix:\n");
-            t.append(Arrays.toString(rotationMatrix));
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 4; j++) {
+                    t.append(String.format("%1.1f | ", rotationMatrix[i * 4 + j]));
+                }
+                t.append("\n");
+            }
+            // t.append(Arrays.toString(rotationMatrix));
             t.append("\ninclinationMatrix:\n");
             t.append(Arrays.toString(inclinationMatrix));
 	        Matrix.invertM(invRotationMatrix, 0, rotationMatrix, 0);
 	        Matrix.multiplyMV(finCoordinates, 0, invRotationMatrix, 0, curCoordinates, 0);
 
-
+            t.append("\norientation:\n");
+            res = new float[3];
+            mSensorManager.getOrientation(rotationMatrix, res);
+            t.append(String.format("z: %3.0f, x: %3.0f, y: %3.0f", Math.toDegrees(res[0]), Math.toDegrees(res[1]), Math.toDegrees(res[2])));
         }
     }
 
