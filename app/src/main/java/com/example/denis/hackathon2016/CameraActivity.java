@@ -72,7 +72,7 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
             float[] viewMatrix = new float[16];
             float[] translateMatrix = new float[16];
 
-            float t = (float)0.5;
+            float t = 1f;
             float[] points = new float[]{t, t, 0, 0, t, -t, 0, 0, -t, t, 0, 0, -t, -t, 0, 0};
 
             CameraSurfaceView sv = (CameraSurfaceView)findViewById(R.id.surfaceView);
@@ -90,7 +90,7 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
             for (int i = 0; i < points.length / 4; i++) {
                 float[] res = new float[4];
                 android.opengl.Matrix.multiplyMV(res, 0, mVPmatrix, 0, points, i * 4);
-                a[i] = new CameraSurfaceView.Circle2D(res[0] + 0.5f, -res[1] + 0.5f, i);
+                a[i] = new CameraSurfaceView.Circle2D(res[0] + 0.5f, -res[1] + 0.5f, (res[2] > 0) ? i : 0);
             }
 
            /* float[] vec = {1, 0, 0, 0};
