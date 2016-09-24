@@ -79,30 +79,28 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
             SensorManager.getRotationMatrixFromVector(rotationMatrix, mRotationVectorValue);
 
             android.opengl.Matrix.perspectiveM(perspectiveMatrix, 0, 90, sv.getAspectRatio(), (float)0.1, 1);
-            /*
+
+            float[] rotateAround = new float[16];
+            float[] rotated = new float[16];
+            android.opengl.Matrix.setRotateEulerM(rotateAround, 0, 0, 0, 100);
+            android.opengl.Matrix.multiplyMM(rotated, 0, rotationMatrix, 0, rotateAround, 0);
+            android.opengl.Matrix.multiplyMM(mVPmatrix, 0, perspectiveMatrix, 0, rotated, 0);
+
             CameraSurfaceView.Circle2D[] a = new CameraSurfaceView.Circle2D[points.length / 4];
             for (int i = 0; i < points.length / 4; i++) {
                 float[] res = new float[4];
-                android.opengl.Matrix.multiplyMV(res, 0, rotationMatrix, 0, points, i * 4);
-                a[i] = new CameraSurfaceView.Circle2D(res[0] + 0.5f, res[1] +0.5f, i);
-                break;
-            }*/
+                android.opengl.Matrix.multiplyMV(res, 0, mVPmatrix, 0, points, i * 4);
+                a[i] = new CameraSurfaceView.Circle2D(res[0] + 0.5f, -res[1] + 0.5f, i);
+            }
 
-            float[] vec = {1, 0, 0, 0};
+           /* float[] vec = {1, 0, 0, 0};
             float[] res = new float[4];
 
             CameraSurfaceView.Circle2D[] a = new CameraSurfaceView.Circle2D[2];
-            float[] rotateAround = new float[16];
-            float[] rotated = new float[16];
-
-            android.opengl.Matrix.setRotateEulerM(rotateAround, 0, 0, 0, 100);
-
-            android.opengl.Matrix.multiplyMM(rotated, 0, rotationMatrix, 0, rotateAround, 0);
-            android.opengl.Matrix.multiplyMM(mVPmatrix, 0, perspectiveMatrix, 0, rotated, 0);
             android.opengl.Matrix.multiplyMV(res, 0, mVPmatrix, 0, vec, 0);
 
             a[0] = new CameraSurfaceView.Circle2D(res[0] + 0.5f, -res[1] + 0.5f, 2);
-            a[1] = new CameraSurfaceView.Circle2D(0.5f, 0.5f, 1);
+            a[1] = new CameraSurfaceView.Circle2D(0.5f, 0.5f, 1);*/
 
             sv.setCricles(a);
             sv.invalidate();
