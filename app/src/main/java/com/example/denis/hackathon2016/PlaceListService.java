@@ -33,6 +33,7 @@ class PlaceListService implements LocationListener {
     }
 
     private Listener mListener;
+    private Location mLocation;
 
     interface Listener {
         void onPlacesGet(Place[] places);
@@ -59,7 +60,12 @@ class PlaceListService implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
+        mLocation = location;
         (new GetDataTask()).execute(String.format(Locale.US, apiUrlTemplate, location.getLatitude(), location.getLongitude()));
+    }
+
+    public Location getLocation() {
+        return mLocation;
     }
 
     private class GetDataTask extends AsyncTask<String, Void, String> {
