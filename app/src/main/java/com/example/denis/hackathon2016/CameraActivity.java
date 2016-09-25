@@ -53,8 +53,8 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
 
         CameraSurfaceView sv = (CameraSurfaceView)findViewById(R.id.surfaceView);
         CameraSurfaceView.Circle2D[] a = new CameraSurfaceView.Circle2D[2];
-        a[0] = new CameraSurfaceView.Circle2D(0, 0, 1);
-        a[1] = new CameraSurfaceView.Circle2D((float)0.5, (float)0.5, (float)1.5);
+        a[0] = new CameraSurfaceView.Circle2D(0, 0, 1, "test1");
+        a[1] = new CameraSurfaceView.Circle2D((float)0.5, (float)0.5, (float)1.5, "test2");
         sv.setCricles(a);
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -101,7 +101,7 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
             for (int i = 0; i < points.length / 4; i++) {
                 float[] res = new float[4];
                 android.opengl.Matrix.multiplyMV(res, 0, mVPmatrix, 0, points, i * 4);
-                a[i] = new CameraSurfaceView.Circle2D(res[0] + 0.5f, -res[1] + 0.5f, (res[2] > 0) ? 2 : 0);
+                a[i] = new CameraSurfaceView.Circle2D(res[0] + 0.5f, -res[1] + 0.5f, (res[2] > 0) ? 1 : 0, mPlaces[i].name);
             }
 
             sv.setCricles(a);
