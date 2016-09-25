@@ -2,6 +2,11 @@ package com.example.denis.hackathon2016;
 
 import java.io.IOException;
 
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.support.v7.app.AppCompatActivity;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -16,7 +21,10 @@ import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
 
-public class CameraActivity extends AppCompatActivity {
+public class CameraActivity extends AppCompatActivity implements SensorEventListener {
+    private SensorManager mSensorManager;
+    private Sensor mRotationVector;
+    private float[] mRotationVectorValue;
 
     SurfaceView sv;
     SurfaceHolder holder;
@@ -46,11 +54,53 @@ public class CameraActivity extends AppCompatActivity {
         a[0] = new CameraSurfaceView.Circle2D(0, 0, 1);
         a[1] = new CameraSurfaceView.Circle2D((float)0.5, (float)0.5, (float)1.5);
         sv.setCricles(a);
+
+        mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mRotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+    }
+
+    private void renderMatrix() {
+        if (mRotationVectorValue != null) {
+            float[] rotationMatrix = new float[16];
+            float[] perspectiveMatrix = new float[16];
+            float[] mVPmatrix = new float[16];
+
+            float t = 1f;
+            float[] points = new float[]{t, t, 0, 0, t, -t, 0, 0, -t, t, 0, 0, -t, -t, 0, 0};
+
+            CameraSurfaceView sv = (CameraSurfaceView)findViewById(R.id.surfaceView);
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, mRotationVectorValue);
+            android.opengl.Matrix.perspectiveM(perspectiveMatrix, 0, 90, sv.getAspectRatio(), (float)0.1, 1);
+            android.opengl.Matrix.multiplyMM(mVPmatrix, 0, perspectiveMatrix, 0, rotationMatrix, 0);
+
+            CameraSurfaceView.Circle2D[] a = new CameraSurfaceView.Circle2D[points.length / 4];
+            for (int i = 0; i < points.length / 4; i++) {
+                float[] res = new float[4];
+                android.opengl.Matrix.multiplyMV(res, 0, mVPmatrix, 0, points, i * 4);
+                a[i] = new CameraSurfaceView.Circle2D(res[0] + 0.5f, -res[1] + 0.5f, (res[2] > 0) ? 2 : 0);
+            }
+
+            sv.setCricles(a);
+            sv.invalidate();
+        }
+    }
+
+    @Override
+    public final void onAccuracyChanged(Sensor sensor, int accuracy) {
+        // Do something here if sensor accuracy changes.
+    }
+
+    @Override
+    public final void onSensorChanged(SensorEvent event) {
+        if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR)
+            mRotationVectorValue = event.values;
+        renderMatrix();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        mSensorManager.registerListener(this, mRotationVector, SensorManager.SENSOR_DELAY_GAME);
         camera = Camera.open(CAMERA_ID);
         setPreviewSize(FULL_SCREEN);
     }
@@ -58,6 +108,7 @@ public class CameraActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        mSensorManager.unregisterListener(this);
         if (camera != null)
             camera.release();
         camera = null;
