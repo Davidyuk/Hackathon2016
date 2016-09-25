@@ -14,7 +14,7 @@ public class CameraSurfaceView extends SurfaceView {
 
     public CameraSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        rectanglePaint.setARGB(255, 200, 0, 0);
+        rectanglePaint.setARGB(128, 0, 0, 255);
         rectanglePaint.setStyle(Paint.Style.FILL);
         rectanglePaint.setStrokeWidth(2);
     }
