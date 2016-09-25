@@ -56,7 +56,7 @@ class PlaceListService implements LocationListener {
             onLocationChanged(location);
     }
 
-    private String apiUrlTemplate = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=%.5f,%.5f&radius=500&key=AIzaSyB2l5Do9JYe7LOQr3DSkZqXrVnyi7sA7u4";
+    private String apiUrlTemplate = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=%.5f,%.5f&radius=500&key=AIzaSyCa62qfg6M2rZE9TxHvLTaGetaPzEjSLOU";
 
     @Override
     public void onLocationChanged(Location location) {
