@@ -70,14 +70,8 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
 
             CameraSurfaceView sv = (CameraSurfaceView)findViewById(R.id.surfaceView);
             SensorManager.getRotationMatrixFromVector(rotationMatrix, mRotationVectorValue);
-
             android.opengl.Matrix.perspectiveM(perspectiveMatrix, 0, 90, sv.getAspectRatio(), (float)0.1, 1);
-
-            float[] rotateAround = new float[16];
-            float[] rotated = new float[16];
-            android.opengl.Matrix.setRotateEulerM(rotateAround, 0, 0, 0, 100);
-            android.opengl.Matrix.multiplyMM(rotated, 0, rotationMatrix, 0, rotateAround, 0);
-            android.opengl.Matrix.multiplyMM(mVPmatrix, 0, perspectiveMatrix, 0, rotated, 0);
+            android.opengl.Matrix.multiplyMM(mVPmatrix, 0, perspectiveMatrix, 0, rotationMatrix, 0);
 
             CameraSurfaceView.Circle2D[] a = new CameraSurfaceView.Circle2D[points.length / 4];
             for (int i = 0; i < points.length / 4; i++) {
