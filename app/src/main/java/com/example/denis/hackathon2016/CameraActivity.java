@@ -81,13 +81,14 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
             float[] points = new float[mPlaces.length * 4];
             Location loc = MPlaceListService.getLocation();
             float max = 0;
+            float lat = -33.8670f, lon = 151.1957f;
             for (int i = 0; i < mPlaces.length; i++) {
-                max = max > Math.abs(mPlaces[i].lat - (float)loc.getLatitude()) ? max : Math.abs(mPlaces[i].lat - (float)loc.getLatitude());
-                max = max > Math.abs(mPlaces[i].lon - (float)loc.getLongitude()) ? max : Math.abs(mPlaces[i].lon - (float)loc.getLongitude());
+                max = max > Math.abs(mPlaces[i].lat - lat) ? max : Math.abs(mPlaces[i].lat - lat);
+                max = max > Math.abs(mPlaces[i].lon - lon) ? max : Math.abs(mPlaces[i].lon - lon);
             }
             for (int i = 0; i < mPlaces.length; i++) {
-                points[i*4+0] = (mPlaces[i].lat - (float)loc.getLatitude()) / max;
-                points[i*4+1] = (mPlaces[i].lon - (float)loc.getLongitude()) / max;
+                points[i*4+0] = (mPlaces[i].lat - lat) / max;
+                points[i*4+1] = (mPlaces[i].lon - lon) / max;
                 points[i*4+2] = 0;
                 points[i*4+3] = 0;
             }
