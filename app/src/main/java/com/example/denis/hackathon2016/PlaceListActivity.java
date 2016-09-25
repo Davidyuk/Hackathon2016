@@ -6,22 +6,38 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONException;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Locale;
+
 public class PlaceListActivity extends AppCompatActivity implements LocationListener {
+    private TextView mTextView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_place_list);
+
+        mTextView = (TextView)findViewById(R.id.textView);
         SetupLocationListener();
     }
 
     private boolean SetupLocationListener() {
-        if (Build.VERSION.SDK_INT >= 23 && (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+        if (Build.VERSION.SDK_INT >= 23 && !(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED)) {
             return false;
         }
         LocationManager locationManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
@@ -35,10 +51,61 @@ public class PlaceListActivity extends AppCompatActivity implements LocationList
         return true;
     }
 
+    private String apiUrlTemplate = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=%.5f,%.5f&radius=500&key=AIzaSyB2l5Do9JYe7LOQr3DSkZqXrVnyi7sA7u4";
+
     @Override
     public void onLocationChanged(Location location) {
-        TextView textView = (TextView)findViewById(R.id.textView);
-        textView.setText(String.format("%f:%f", location.getLatitude(), location.getLongitude()));
+        mTextView.setText(String.format(Locale.getDefault(), "%f:%f\n", location.getLatitude(), location.getLongitude()));
+        mTextView.append(String.format(Locale.US, apiUrlTemplate + "\n\n", location.getLatitude(), location.getLongitude()));
+        (new GetDataTask()).execute(String.format(Locale.US, apiUrlTemplate, location.getLatitude(), location.getLongitude()));
+    }
+
+    private class GetDataTask extends AsyncTask<String, Void, String> {
+        String lastUrl = "", lastResponse;
+
+        @Override
+        protected String doInBackground(String... _url) {
+            String response = "";
+            if (lastUrl.equals(_url[0])) return lastResponse;
+            lastUrl = _url[0];
+            try {
+                URL url = new URL(_url[0]);
+
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+                urlConnection.setRequestMethod("GET");
+                urlConnection.connect();
+                InputStream inputStream = urlConnection.getInputStream();
+                StringBuffer buffer = new StringBuffer();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
+                }
+                response = buffer.toString();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return lastResponse = response;
+        }
+
+        @Override
+        protected void onPostExecute(String strJson) {
+            super.onPostExecute(strJson);
+            try {
+                JSONObject dataJsonObj = new JSONObject(strJson);
+                JSONArray results = dataJsonObj.getJSONArray("results");
+
+                for (int i = 0; i < results.length(); i++) {
+                    JSONObject place = results.getJSONObject(i);
+                    JSONObject location = place.getJSONObject("geometry").getJSONObject("location");
+                    mTextView.append(String.format("%s %f %f\n", place.getString("name"), location.getDouble("lat"), location.getDouble("lng")));
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
