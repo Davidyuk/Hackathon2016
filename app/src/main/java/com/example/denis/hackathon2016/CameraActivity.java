@@ -7,6 +7,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
 import android.support.v7.app.AppCompatActivity;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -21,7 +22,7 @@ import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
 
-public class CameraActivity extends AppCompatActivity implements SensorEventListener {
+public class CameraActivity extends AppCompatActivity implements SensorEventListener, PlaceListService.Listener {
     private SensorManager mSensorManager;
     private Sensor mRotationVector;
     private float[] mRotationVectorValue;
@@ -30,6 +31,7 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
     SurfaceHolder holder;
     HolderCallback holderCallback;
     Camera camera;
+    PlaceListService MPlaceListService;
 
     final int CAMERA_ID = 0;
     final boolean FULL_SCREEN = true;
@@ -57,6 +59,17 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mRotationVector = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+
+        try {
+            MPlaceListService = new PlaceListService(this, this);
+        } catch (Exception e) {
+        }
+    }
+
+    PlaceListService.Place[] mPlaces = new PlaceListService.Place[0];
+
+    public void onPlacesGet(PlaceListService.Place[] places) {
+        mPlaces = places;
     }
 
     private void renderMatrix() {
@@ -65,8 +78,19 @@ public class CameraActivity extends AppCompatActivity implements SensorEventList
             float[] perspectiveMatrix = new float[16];
             float[] mVPmatrix = new float[16];
 
-            float t = 1f;
-            float[] points = new float[]{t, t, 0, 0, t, -t, 0, 0, -t, t, 0, 0, -t, -t, 0, 0};
+            float[] points = new float[mPlaces.length * 4];
+            Location loc = MPlaceListService.getLocation();
+            float max = 0;
+            for (int i = 0; i < mPlaces.length; i++) {
+                max = max > Math.abs(mPlaces[i].lat - (float)loc.getLatitude()) ? max : Math.abs(mPlaces[i].lat - (float)loc.getLatitude());
+                max = max > Math.abs(mPlaces[i].lon - (float)loc.getLongitude()) ? max : Math.abs(mPlaces[i].lon - (float)loc.getLongitude());
+            }
+            for (int i = 0; i < mPlaces.length; i++) {
+                points[i*4+0] = (mPlaces[i].lat - (float)loc.getLatitude()) / max;
+                points[i*4+1] = (mPlaces[i].lon - (float)loc.getLongitude()) / max;
+                points[i*4+2] = 0;
+                points[i*4+3] = 0;
+            }
 
             CameraSurfaceView sv = (CameraSurfaceView)findViewById(R.id.surfaceView);
             SensorManager.getRotationMatrixFromVector(rotationMatrix, mRotationVectorValue);
