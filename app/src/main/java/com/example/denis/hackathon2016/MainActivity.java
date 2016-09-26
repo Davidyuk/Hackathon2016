@@ -17,6 +17,7 @@ import android.content.Intent;
 import android.widget.TextView;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     private SensorManager mSensorManager;
@@ -52,6 +53,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mGravity = mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         mGeomagnetic = mSensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
+
+        TextView t = (TextView)findViewById(R.id.textView);
+        List<Sensor> deviceSensors = mSensorManager.getSensorList(Sensor.TYPE_ALL);
+        t.setText(String.format("Sensors count: %d\n", deviceSensors.size()));
+        for (Sensor s : deviceSensors) {
+            t.append(s.getStringType() + ": " + s.getName() + "\n");
+        }
     }
 
     private void renderMatrix() {
